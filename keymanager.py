@@ -22,9 +22,9 @@ class RSAKeyManager:
         self.secure = secure
         if not self.secure:
             # Small primes for demonstration purposes
-            self.p = 13
-            self.q = 7
-            self.e = 5
+            self.p = 161585042024024600813770509503234391657
+            self.q = 150045027102489365986555491521355441339
+            self.e = 65537
             self.public_key, self.private_key = self.generate_rsa_keys(self.p, self.q, self.e)
         else:
             # Generate a high-security private key
@@ -43,7 +43,6 @@ class RSAKeyManager:
         phi = (p - 1) * (q - 1)
         d = self.inv_mod(e, phi)
         if d == -1:
-            print("hello ", e , " ", phi)
             return None, None
         public_numbers = rsa.RSAPublicNumbers(e, n)
         private_numbers = rsa.RSAPrivateNumbers(p, q, d, d % (p-1), d % (q-1), self.inv_mod(q, p), public_numbers)
@@ -81,4 +80,4 @@ def get_public_key_from_pem(pem):
     Returns the public key given a public key in PEM format.
     :return: public key.
     """
-    return serialization.load_pem_public_key
+    return serialization.load_pem_public_key(pem)
