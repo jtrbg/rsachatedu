@@ -2,6 +2,34 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
+def mod(left, right):
+    temp = left
+    if left == 0:
+        return -1
+    if left < 0:
+        if right <= 0:
+            return right - left
+        while temp < 0:
+            temp += right
+    return left % right
+
+def gcd(a, b):
+    if a < 0:
+        a = a*-1
+    if b < 0:
+        b = b*-1
+    left = a
+    out = b
+    m = left/out
+    r = left - (m*out)
+    
+    while r != 0:
+        left = out
+        out = r
+        m = left/out
+        r = left - (m*out)
+    return out
+
 class RSAKeyManager:
     """
     Manages RSA key generation and encoding. Can operate in secure mode for real-world
@@ -40,7 +68,7 @@ class RSAKeyManager:
         public_numbers = rsa.RSAPublicNumbers(e, n)
         private_numbers = rsa.RSAPrivateNumbers(p, q, d, d % (p-1), d % (q-1), self.inv_mod(q, p), public_numbers)
         return public_numbers.public_key(default_backend()), private_numbers.private_key(default_backend())
-
+    
     @staticmethod
     def inv_mod(a, b):
         """
@@ -49,13 +77,14 @@ class RSAKeyManager:
         :param b: Integer, the modulo.
         :return: Integer, the modular inverse if one exists, or -1 if no inverse exists.
         """
-        x, y, u, v = 0, 1, 1, 0
-        while a != 0:
-            q, r = b//a, b % a
-            m, n = x-u*q, y-v*q
-            b, a, x, y, u, v = a, r, u, v, m, n
-        gcd = b
-        return x % b if gcd == 1 else -1
+        if gcd(a, b) != 1 or b < 1:
+            return -1
+        
+        inv = 1
+        while mod(a * inv, b) != 1:
+            inv += 1
+        
+        return inv
 
     def get_public_key_pem(self):
         """
