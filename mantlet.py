@@ -1,5 +1,4 @@
 from scapy.all import sniff, IP, TCP
-from sympy.ntheory import qsieve
 import rsa  # Simplified RSA operations, install with `pip install rsa`
 
 # Global variables to store keys and state
@@ -20,6 +19,34 @@ def intercept_key(packet):
             factor_and_prepare(public_key.n)
     except Exception as e:
         print(f"Error processing packet: {e}")
+
+import math
+
+def is_square(n):
+    """ Check if n is a perfect square """
+    root = int(math.sqrt(n))
+    return root * root == n
+
+def trial_division(n, limit):
+    """ Simple trial division algorithm up to a given limit """
+    assert n >= 2
+    for i in range(2, limit):
+        if n % i == 0:
+            return i
+    return n
+
+def qsieve(n):
+    """ Simplified version of the Quadratic Sieve algorithm for factoring integers """
+    limit = int(math.sqrt(n)) + 1
+    for base in range(2, limit):
+        val = base * base - n
+        if is_square(val):
+            x = int(math.sqrt(val))
+            factor1 = math.gcd(n, base + x)
+            factor2 = math.gcd(n, base - x)
+            if factor1 != 1 or factor2 != 1:
+                return (factor1, factor2)
+    return "No factors found with simple QS"
 
 # Part 2: Factor the Key's Modulus using Quadratic Sieve and prepare for decryption
 def factor_and_prepare(n):
