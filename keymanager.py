@@ -3,32 +3,14 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
 def mod(left, right):
-    temp = left
-    if left == 0:
-        return -1
-    if left < 0:
-        if right <= 0:
-            return right - left
-        while temp < 0:
-            temp += right
     return left % right
 
 def gcd(a, b):
-    if a < 0:
-        a = a*-1
-    if b < 0:
-        b = b*-1
-    left = a
-    out = b
-    m = left/out
-    r = left - (m*out)
-    
-    while r != 0:
-        left = out
-        out = r
-        m = left/out
-        r = left - (m*out)
-    return out
+    sa = a
+    sb = b
+    while sb != 0:
+        sa, sb = sb, sa % sb 
+    return abs(sa)
 
 class RSAKeyManager:
     """
@@ -64,6 +46,7 @@ class RSAKeyManager:
         phi = (p - 1) * (q - 1)
         d = self.inv_mod(e, phi)
         if d == -1:
+            print("hello ", e , " ", phi)
             return None, None
         public_numbers = rsa.RSAPublicNumbers(e, n)
         private_numbers = rsa.RSAPrivateNumbers(p, q, d, d % (p-1), d % (q-1), self.inv_mod(q, p), public_numbers)
@@ -80,11 +63,14 @@ class RSAKeyManager:
         if gcd(a, b) != 1 or b < 1:
             return -1
         
-        inv = 1
-        while mod(a * inv, b) != 1:
-            inv += 1
-        
-        return inv
+        mod = b
+        x0, x1 = 0, 1
+        while a > 1:
+            q = a // b
+            a, b = b, a % b
+            x0, x1 = x1 - q * x0, x0
+            
+        return x1 if x1 >= 0 else x1 + mod
 
     def get_public_key_pem(self):
         """
