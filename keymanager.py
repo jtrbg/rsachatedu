@@ -38,7 +38,7 @@ class RSAKeyManager:
         if d == -1:
             return None, None
         public_numbers = rsa.RSAPublicNumbers(e, n)
-        private_numbers = rsa.RSAPrivateNumbers(p, q, d, d % (p-1), d % (q-1), self.inv_mod(q, p), e, n)
+        private_numbers = rsa.RSAPrivateNumbers(p, q, d, d % (p-1), d % (q-1), self.inv_mod(q, p), public_numbers)
         return public_numbers.public_key(default_backend()), private_numbers.private_key(default_backend())
 
     @staticmethod
