@@ -21,9 +21,9 @@ class RSAKeyManager:
         """
         self.secure = secure
         if not self.secure:
-            self.p = 13
-            self.q = 7
-            self.e = 5
+            self.p = 219319195187371
+            self.q = 207664030057511
+            self.e = 65537
             self.public_key, self.private_key = self.generate_rsa_keys(self.p,self.q,self.e)
         else:
             # Generate a high-security private key

@@ -32,16 +32,19 @@ class ClientHandler:
                 if message:
                     decrypted_message = ""
                     if self.private_key.key_size < 2048:
-                        plaintext_int = pow(message, self.private_key.private_numbers().d,self.private_key.private_numbers().n)
+                        message_int = int.from_bytes(message, 'big')
+                        plaintext_int = pow(message_int, self.private_key.private_numbers().d,self.private_key.private_numbers().n)
                         plaintext_bytes = plaintext_int.to_bytes((plaintext_int.bit_length() + 7) // 8, byteorder='big')
                         decrypted_message = plaintext_bytes.decode('utf-8')
+                        print("\r\033[K", end='')
+                        print(f"{self.addr}: {decrypted_message}")
                     else:
                         decrypted_message = self.private_key.decrypt(
                             message, 
                             padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
                         )
-                    print("\r\033[K", end='')
-                    print(f"{self.addr}: {decrypted_message.decode()}")
+                        print("\r\033[K", end='')
+                        print(f"{self.addr}: {decrypted_message.decode()}")
                     self.message_ready.set()
 
     def send_messages(self, other_public_key):
@@ -58,7 +61,9 @@ class ClientHandler:
             encrypted_message = ""
             if other_public_key.key_size < 2048:
                 message_int = int.from_bytes(message_to_send.encode('utf-8'), byteorder='big')
-                encrypted_message = pow(message_int, other_public_key.public_numbers().e,other_public_key.public_numbers().n)
+                encrypted_message_int = pow(message_int, other_public_key.public_numbers().e,other_public_key.public_numbers().n)
+                byte_size = (encrypted_message_int.bit_length()+ 7) // 8
+                encrypted_message = encrypted_message_int.to_bytes(byte_size,byteorder='big')
             else:
                 encrypted_message = other_public_key.encrypt(
                     message_to_send.encode(),
