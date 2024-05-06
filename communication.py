@@ -2,6 +2,7 @@ import threading
 import select
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes
+import ast
 
 class ClientHandler:
     """
@@ -29,10 +30,16 @@ class ClientHandler:
             if ready_to_read:
                 message = self.client_socket.recv(4096)
                 if message:
-                    decrypted_message = self.private_key.decrypt(
-                        message, 
-                        padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-                    )
+                    decrypted_message = ""
+                    if self.private_key.key_size < 2048:
+                        plaintext_int = pow(message, self.private_key.private_numbers().d,self.private_key.private_numbers().n)
+                        plaintext_bytes = plaintext_int.to_bytes((plaintext_int.bit_length() + 7) // 8, byteorder='big')
+                        decrypted_message = plaintext_bytes.decode('utf-8')
+                    else:
+                        decrypted_message = self.private_key.decrypt(
+                            message, 
+                            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
+                        )
                     print("\r\033[K", end='')
                     print(f"{self.addr}: {decrypted_message.decode()}")
                     self.message_ready.set()
@@ -48,10 +55,15 @@ class ClientHandler:
             if message_to_send == '\\exit':
                 self.client_socket.sendall(message_to_send.encode())
                 break
-            encrypted_message = other_public_key.encrypt(
-                message_to_send.encode(),
-                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-            )
+            encrypted_message = ""
+            if other_public_key.key_size < 2048:
+                message_int = int.from_bytes(message_to_send.encode('utf-8'), byteorder='big')
+                encrypted_message = pow(message_int, other_public_key.public_numbers().e,other_public_key.public_numbers().n)
+            else:
+                encrypted_message = other_public_key.encrypt(
+                    message_to_send.encode(),
+                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
+                )
             self.client_socket.sendall(encrypted_message)
             print("Message sent, waiting for reply...", end = '')
             self.message_ready.clear()

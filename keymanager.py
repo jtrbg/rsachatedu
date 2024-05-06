@@ -21,15 +21,15 @@ class RSAKeyManager:
         """
         self.secure = secure
         if not self.secure:
-            # Small primes for demonstration purposes
-            self.p = 161585042024024600813770509503234391657
-            self.q = 150045027102489365986555491521355441339
-            self.e = 65537
-            self.public_key, self.private_key = self.generate_rsa_keys(self.p, self.q, self.e)
+            self.p = 13
+            self.q = 7
+            self.e = 5
+            self.public_key, self.private_key = self.generate_rsa_keys(self.p,self.q,self.e)
         else:
             # Generate a high-security private key
             self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             self.public_key = self.private_key.public_key()
+            print(self.public_key.key_size)
 
     def generate_rsa_keys(self, p, q, e):
         """
